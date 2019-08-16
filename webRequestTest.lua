@@ -442,8 +442,8 @@ function parseModifiers(modifiers)
                 -- TODO add weapon/armor/tool proficiencies
 
             elseif modifier.type == "language" then
-                print("Language: ", modifier.subType)
-                -- TODO Add languages to table
+                -- add language to character data
+                characterData.languages[modifier.subType] = true
             end
         end
     end
@@ -509,7 +509,7 @@ function webRequestCallBack(webReturn)
     startLuaCoroutine(self, "decodeWebJson")
 end
 
--- Arwin
+-- Arin
 -- https://www.dndbeyond.com/character/1828892/json
 
 -- Korwin
