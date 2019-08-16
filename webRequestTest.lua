@@ -308,54 +308,68 @@ function decode(str)
 end
 -- End JSON decode library
 
-stats = {
-    strength = 0,
-    dexterity = 0,
-    constitution = 0,
-    intelligence = 0,
-    wisdom = 0,
-    charisma = 0
-}
+characterData = {
+    name = "",
 
--- weapon/armor/tool proficiencies
-proficiencies = {
-
-}
-
-languages = {
-
-}
-
--- skill proficiencies
-skills = {
-    strength = {
-        athletics = 0
+    stats = {
+        strength = 0,
+        dexterity = 0,
+        constitution = 0,
+        intelligence = 0,
+        wisdom = 0,
+        charisma = 0
     },
-    dexterity = {
-        acrobatics = 0,
-        sleightOfHand = 0,
-        stealth = 0
+
+    classes = {
+        -- Example
+        -- Cleric = 3  [Class] = [Level]
     },
-    intelligence = {
-        arcana = 0,
-        history = 0,
-        investigation = 0,
-        nature = 0,
-        religion = 0
+
+    -- total character level and associated proficiency bonus
+    totalLevel = 0,
+    proficiencyBonus = 0,
+
+    -- weapon/armor/tool proficiencies
+    proficiencies = {
+
     },
-    wisdom = {
-        animalHandling = 0,
-        insight = 0,
-        medicine = 0,
-        perception = 0,
-        survival = 0
+
+    languages = {
+
     },
-    charisma = {
-        deception = 0,
-        intimidation = 0,
-        performance = 0,
-        persuasion = 0
+
+    -- skill proficiencies
+    skills = {
+        strength = {
+            athletics = 0
+        },
+        dexterity = {
+            acrobatics = 0,
+            sleightOfHand = 0,
+            stealth = 0
+        },
+        intelligence = {
+            arcana = 0,
+            history = 0,
+            investigation = 0,
+            nature = 0,
+            religion = 0
+        },
+        wisdom = {
+            animalHandling = 0,
+            insight = 0,
+            medicine = 0,
+            perception = 0,
+            survival = 0
+        },
+        charisma = {
+            deception = 0,
+            intimidation = 0,
+            performance = 0,
+            persuasion = 0
+        }
     }
+
 }
 
 
@@ -365,75 +379,127 @@ function parseStats(statsIn)
     for k, v in pairs(statsIn) do
         local id = v['id']
         local value = v['value']
+        local stats = characterData.stats
 
         if id == 1 then
-            stats.strength = stats.strength + value
+            stats.strength = value
         elseif id == 2 then
-            stats.dexterity = stats.dexterity + value
+            stats.dexterity = value
         elseif id == 3 then
-            stats.constitution = stats.constitution + value
+            stats.constitution = value
         elseif id == 4 then
-            stats.intelligence = stats.intelligence + value
+            stats.intelligence = value
         elseif id == 5 then
-            stats.wisdom = stats.wisdom + value
+            stats.wisdom = value
         elseif id == 6 then
-            stats.charisma = stats.charisma + value
+            stats.charisma = value
         else
             print(id, 'not recognized')
         end
     end
 end
 
+function addStatBonus(stat, bonus)
+    local stats = characterData.stats
+
+    if stat == "strength-score" then
+        stats.strength = stats.strength + bonus
+    elseif stat == "dexterity-score" then
+        stats.dexterity = stats.dexterity + bonus
+    elseif stat == "consitution-score" then
+        stats.constitution = stats.consitution + bonus
+    elseif stat == "intelligence-score" then
+        stats.intelligence = stats.intelligence + bonus
+    elseif stat == "wisdom-score" then
+        stats.wisdom = stats.wisdom + bonus
+    elseif stat == "charisma-score" then
+        stats.charisma = stats.charisma + bonus
+    else
+        print(stat, " not recognized as a stat")
+    end
+end
+
+function addSkillProficiency(skill)
+    local bonus = characterData.proficiencyBonus
+    -- TODO Add proficiency bonus to selected skills
+    print(skill, bonus)
+end
+
 function parseModifiers(modifiers)
     -- loop through each modifier type
     for type, values in pairs(modifiers) do
-        --print(type)
         -- loop through array of objects
         for index, modifier in pairs(values) do
             if modifier.type == "bonus" then
-                local stat = modifier.subType
-                local val = modifier.value
+                addStatBonus(modifier.subType, modifier.value)                
 
-                if stat == "strength-score" then
-                    stats.strength = stats.strength + val
-                elseif stat == "dexterity-score" then
-                    stats.dexterity = stats.dexterity + val
-                elseif stat == "consitution-score" then
-                    stats.constitution = stats.consitution + val
-                elseif stat == "intelligence-score" then
-                    stats.intelligence = stats.intelligence + val
-                elseif stat == "wisdom-score" then
-                    stats.wisdom = stats.wisdom + val
-                elseif stat == "charisma-score" then
-                    stats.charisma = stats.charisma + val
-                else
-                    print(stat, " not recognized as a stat")
-                end
-                --print(modifier.subType)
             elseif modifier.type == "proficiency" then
-                print(modifier.subType)
+                -- TODO select only skill proficiencies
+                addSkillProficiency(modifier.subType)
+
+                -- TODO add saving-throw proficiencies
+
+                -- TODO add weapon/armor/tool proficiencies
+
+            elseif modifier.type == "language" then
+                print("Language: ", modifier.subType)
+                -- TODO Add languages to table
             end
         end
     end
 end
 
+-- computes proficiency bonus based on total level
+function getProficiencyBonus(level)
+    return math.floor((7 + level) / 4)
+end
+
+-- gathers level and related class information, sets proficiency bonus based on total level
+function parseClasses(classes)
+    print("Classes: ")
+    -- loop through all classes and pull relevant data
+    for index, class in pairs(classes) do
+        local name = class.definition.name
+        local level = class.level
+        
+        characterData.classes[name] = level
+    end
+
+    local total = 0
+    for class, lvl in pairs(characterData.classes) do
+        total = total + lvl
+    end
+
+    characterData.totalLevel = total
+    characterData.proficiencyBonus = getProficiencyBonus(total)
+end
+
+function addBonuses()
+    -- TODO compute modifiers based on stats
+end
+
 function webRequestCallBack(webReturn)
     print('Data Received')
-    --webData = webReturn.text
 
     function decodeWebJson()
         -- Decode json received into a lua table
-        params = {str = webReturn.text}
         print("Starting JSON decode")
         character =  decode(webReturn.text)
         print("JSON decoded")
+
+        characterData.name = character.name
+        self.setName(character.name)
         
         parseStats(character.stats)
 
+        parseClasses(character.classes)
+
         parseModifiers(character.modifiers)
 
+        addBonuses()
+
         -- TODO Remove this after testing is done
-        for k, v in pairs(stats) do
+        for k, v in pairs(characterData.stats) do
             print(k, v)
         end
     
@@ -443,8 +509,14 @@ function webRequestCallBack(webReturn)
     startLuaCoroutine(self, "decodeWebJson")
 end
 
+-- Arwin
+-- https://www.dndbeyond.com/character/1828892/json
+
+-- Korwin
+-- https://www.dndbeyond.com/character/12044609/json
+
 function download()
-    request = WebRequest.get('https://www.dndbeyond.com/character/12044609/json', webRequestCallBack)
+    request = WebRequest.get('https://www.dndbeyond.com/character/1828892/json', webRequestCallBack)
 
     while(not request.is_done) do
         print("Waiting for download")
